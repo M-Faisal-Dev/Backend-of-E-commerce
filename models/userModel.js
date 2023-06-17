@@ -33,7 +33,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['user', 'admin'],
       default: 'user'
-    }
+    },
+    isBlocked: {type: Boolean, default: false},
+    
+    cart:{
+    type : Array,
+    default : []
+    },
+    address:[{type: mongoose.Schema.Types.ObjectId, ref: "Address"}],
+    whishlist: [{type: mongoose.Schema.Types.ObjectId, ref: "Product"}],
   },
   {
     timestamps: true
