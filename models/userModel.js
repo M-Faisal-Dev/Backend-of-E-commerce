@@ -35,13 +35,14 @@ const userSchema = new mongoose.Schema(
       default: 'user'
     },
     isBlocked: {type: Boolean, default: false},
-    
+
     cart:{
     type : Array,
     default : []
     },
     address:[{type: mongoose.Schema.Types.ObjectId, ref: "Address"}],
     whishlist: [{type: mongoose.Schema.Types.ObjectId, ref: "Product"}],
+    refreshToken:{type: String }
   },
   {
     timestamps: true
