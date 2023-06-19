@@ -11,7 +11,10 @@ import {
     blockUser,
     unblockUser,
     handleRefreshToken,
-    handleLogout
+    handleLogout,
+    updatePassword,
+    forgetPasswordToken,
+    resetPassword
 } from '../controller/userCtrl.js';
 
 
@@ -20,9 +23,12 @@ router.post("/login", loginUser)
 router.get("/all-users", getAllUser)
 router.get("/refresh", handleRefreshToken)
 router.get("/logout", handleLogout)
-router.get("/:id", authMiddleware,isAdmin, getSingleUser)
 router.delete("/:id", deleteUser)
+router.post("/forget-password",forgetPasswordToken)
+router.put("/reset-password/:token", resetPassword)
+router.put("/password/",authMiddleware, updatePassword)
 router.put("/edit-user",authMiddleware, updateUser)
+router.get("/:id", authMiddleware,isAdmin, getSingleUser)
 router.put("/block-user/:id",authMiddleware,isAdmin, blockUser)
 router.put("/unblock-user/:id",authMiddleware,isAdmin, unblockUser)
 
