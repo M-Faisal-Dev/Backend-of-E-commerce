@@ -7,6 +7,10 @@ const PORT = process.env.PORT || 4000;
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
 import authRouter from "./routes/authRouter.js"
 import productRouter from "./routes/productRouter.js"
+import blogRouter from "./routes/blogRouter.js"
+import proCategoryRouter from "./routes/productCategoryRouter.js"
+import blogCategoryRouter from "./routes/blogCategoryRouter.js"
+import Brand from './routes/brandRouter.js';
 import dbConnect from './config/dbConnect.js';
 import mongan from  "morgan"
 dbConnect();
@@ -17,6 +21,10 @@ app.use(cookieParser());
 
 app.use("/api/user", authRouter)
 app.use("/api/product", productRouter)
+app.use("/api/blog", blogRouter)
+app.use("/api/category", proCategoryRouter)
+app.use("/api/blogcategory", blogCategoryRouter)
+app.use("/api/brand", Brand)
 
 app.use(notFound)
 app.use(errorHandler)
