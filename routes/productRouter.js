@@ -7,7 +7,9 @@ import {
     getSingleProduct,
     getAllProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    addToWishList,
+    addRating
 } from '../controller/productCtrl.js'
 
 
@@ -15,6 +17,8 @@ import {
 router.post('/',authMiddleware,isAdmin, createProduct)
 router.get('/', getAllProduct)
 router.get('/:id', getSingleProduct)
+router.put('/wishlist',authMiddleware,isAdmin, addToWishList)
+router.put('/rating',authMiddleware, addRating)
 router.put('/:id',authMiddleware,isAdmin, updateProduct)
 router.delete('/:id',authMiddleware,isAdmin, deleteProduct)
 

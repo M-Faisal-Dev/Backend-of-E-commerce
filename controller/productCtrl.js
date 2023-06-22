@@ -107,6 +107,76 @@ const deleteProduct = asyncHandler(async(req,res)=>{
 })
 
 
+const addToWishList = asyncHandler(async(req,res)=>{
+const {id} = req.user;
+const {prodId} = req.body;
+try{
+const user = await User.findById(id)
+const allreadyAdd = user.wishlist.find(id => id.toString() === prodId)
+if(allreadyAdd){
+  const user = await User.findByIdAndUpdate(id, {$pull:{wishlist:prodId}},
+    {new: true})
+    res.json(user)
+}else{
+  const user = await User.findByIdAndUpdate(id, {$push:{wishlist:prodId}},
+    {new: true})
+    res.json(user)
+
+}
+
+}catch(err){
+  throw new Error(err)
+}
+ 
+})
+
+
+const addRating = asyncHandler(async (req, res, next) => {
+  const { id } = req.user;
+  const { star, prodId , comment} = req.body;
+  console.log(Comment)
+  try {
+    const product = await Product.findById(prodId);
+let allreadyRated = product.ratings.find(rating => rating.postedBy.toString() === id.toString());
+    if (allreadyRated) {
+    const updateRating = await Product.updateOne(
+      {
+        ratings : {$elemMatch: allreadyRated}
+      },
+      {
+        $set: {"ratings.$.star": star,"ratings.$.comment": comment},
+      },
+      {
+        new: true,
+      }
+    );
+    }else{
+      const rateProduct = await Product.findByIdAndUpdate(
+        prodId, {$push:{ ratings: {
+          star: star,
+          comment: comment,
+          postedBy: id,
+        }}},{
+          new: true
+        }
+      )
+    }
+const getallrating = await Product.findById(prodId);
+let totalRating = getallrating.ratings.length;
+let ratingSum = getallrating.ratings.map((item)=> item.star).reduce((prev, current)=> prev + current, 0);
+let actualRating = Math.round(ratingSum / totalRating);
+const finalProduct = await Product.findByIdAndUpdate(prodId,{
+  totalrating: actualRating,
+},{
+  new: true
+})
+res.json(finalProduct)
+  } catch (err) {
+    throw new Error(err)
+  }
+});
+
+
 
 
 export {
@@ -114,5 +184,7 @@ export {
     getSingleProduct,
     getAllProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    addToWishList,
+    addRating
 }

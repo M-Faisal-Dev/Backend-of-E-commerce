@@ -11,6 +11,7 @@ import blogRouter from "./routes/blogRouter.js"
 import proCategoryRouter from "./routes/productCategoryRouter.js"
 import blogCategoryRouter from "./routes/blogCategoryRouter.js"
 import Brand from './routes/brandRouter.js';
+import coupan from './routes/couponRouter.js';
 import dbConnect from './config/dbConnect.js';
 import mongan from  "morgan"
 dbConnect();
@@ -25,6 +26,7 @@ app.use("/api/blog", blogRouter)
 app.use("/api/category", proCategoryRouter)
 app.use("/api/blogcategory", blogCategoryRouter)
 app.use("/api/brand", Brand)
+app.use("/api/coupan", coupan)
 
 app.use(notFound)
 app.use(errorHandler)
