@@ -2,6 +2,9 @@ import User from "../models/userModel.js";
 import Blog from "../models/blogModel.js";
 import asyncHandler from "express-async-handler";
 import validateMongoId from "../ulits/validateMongodbId.js";
+import uploadFileToCloudinary from "../ulits/cloudinary.js";
+import fs from "fs";
+
 
 
 const createBlog = asyncHandler(async(req,res)=>{
@@ -203,7 +206,31 @@ const updateBlog = asyncHandler(async(req,res)=>{
         }
       });
       
-
+      const uploadImgs = asyncHandler(async(req, res) => {
+        const {id} = req.params;
+        validateMongoId(id)
+        try{
+          const uploader = (path) => uploadFileToCloudinary(path, "images");
+          const urls = [];
+          const files = req.files;
+          for(const file of files){
+            const {path} = file;
+            const newPath = await uploader(path);
+            urls.push(newPath);
+          fs.unlinkSync(path);
+      
+          }
+      
+          const findProduct = await Blog.findByIdAndUpdate(id,{images: urls.map((file) => {
+            return file
+          })},
+          {new: true}
+          );
+          res.json(findProduct)
+        }catch(err){
+          throw new Error(err)
+        }
+      })
 
 
 export 
@@ -214,5 +241,6 @@ export
     updateBlog,
     deleteBlog,
     likeBlog,
-    dislikeBlog
+    dislikeBlog,
+    uploadImgs,
 }

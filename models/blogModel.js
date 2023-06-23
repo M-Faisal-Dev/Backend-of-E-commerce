@@ -38,10 +38,7 @@ type: mongoose.Schema.Types.ObjectId,
 ref : "User",
     }
   ],
-image:{
-    type: String,
-    default: "https://media.tacdn.com/media/attractions-splice-spp-674x446/09/c3/33/97.jpg"
-},
+  images: [],
 
 author: {
     type: String,

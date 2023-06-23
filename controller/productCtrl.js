@@ -3,6 +3,9 @@ import asyncHandler from "express-async-handler";
 import validateMongoId from "../ulits/validateMongodbId.js";
 import Product from "../models/productModel.js";
 import slugify from "slugify";
+import uploadFileToCloudinary from "../ulits/cloudinary.js";
+import fs from "fs";
+
 
 
 // create product 
@@ -176,7 +179,32 @@ res.json(finalProduct)
   }
 });
 
+const uploadImgs = asyncHandler(async(req, res) => {
+  const {id} = req.params;
+  validateMongoId(id)
+  try{
+    const uploader = (path) => uploadFileToCloudinary(path, "images");
+    const urls = [];
+    const files = req.files;
+    for(const file of files){
+      const {path} = file;
+      const newPath = await uploader(path);
+      urls.push(newPath);
+      fs.unlinkSync(path);
+     
 
+    }
+
+    const findProduct = await Product.findByIdAndUpdate(id,{images: urls.map((file) => {
+      return file
+    })},
+    {new: true}
+    );
+    res.json(findProduct)
+  }catch(err){
+    throw new Error(err)
+  }
+})
 
 
 export {
@@ -186,5 +214,6 @@ export {
     updateProduct,
     deleteProduct,
     addToWishList,
-    addRating
+    addRating,
+    uploadImgs
 }
