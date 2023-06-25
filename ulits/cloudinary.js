@@ -1,9 +1,11 @@
 import cloudinary from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config();
 
 cloudinary.config({ 
-  cloud_name: "dpvefempu", 
-  api_key: '775619252319668', 
-  api_secret: 'Z94IkNxRCQ2-Lzn1dxzwCtXbheM'
+  cloud_name: process.env.CLOUD_NAMEE, 
+  api_key: process.env.API_KEYY, 
+  api_secret: process.env.API_SECRETT,
 });
 
 async function uploadFileToCloudinary(file) {

@@ -94,7 +94,6 @@ const updateBlog = asyncHandler(async(req,res)=>{
             (userId) => userId.toString() === loginUserId?.toString()
           );
       
-          console.log(alreadyDisliked);
       
           if (alreadyDisliked) {
             // Remove the user from the disLikes array and set isDisLiked to false
@@ -160,7 +159,6 @@ const updateBlog = asyncHandler(async(req,res)=>{
             (userId) => userId.toString() === loginUserId?.toString()
           );
       
-          console.log(alreadyLiked);
       
           if (alreadyLiked) {
             // Remove the user from the likes array and set isLiked to false

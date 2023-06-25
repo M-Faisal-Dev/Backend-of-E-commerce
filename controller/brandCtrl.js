@@ -6,7 +6,6 @@ import Brand from "../models/brandModel.js";
 const createBrand = asyncHandler(async(req,res)=>{
     try{
     const brand = await Brand.create(req.body)
-    console.log(brand)
     res.json(brand)
      }catch(err){
          throw new Error(err)

@@ -34,7 +34,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   try {
     const findUser = await User.findOne({ email });
-    console.log(findUser.firstname + " " + findUser.lastname);
     if (findUser && (await findUser.isPasswordMatch(password))) {
       const refreshToken = generateRefreshToken(findUser?.id);
       const updatedUser = await User.findByIdAndUpdate(
@@ -132,7 +131,6 @@ const handleLogout = asyncHandler(async (req, res) => {
     throw new Error("refreshToken is not set in cookie");
   const refreshToken = cookie.refreshToken;
   const user = await User.findOne({ refreshToken });
-  console.log(user)
   if (!user) {
     res.clearCookie("refreshToken", {
       httpOnly: true,
@@ -419,7 +417,6 @@ const emptyCart = asyncHandler(async (req, res) => {
   validateMongoId(_id);
   try{
     const user = await User.findOne({_id})
-    console.log(user)
     const cart = await Cart.findOneAndRemove({orderBy : user?._id})
 res.json(cart);
 

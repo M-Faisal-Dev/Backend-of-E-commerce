@@ -42,7 +42,6 @@ const getAllProduct = asyncHandler(async (req, res) => {
     excludeField.forEach((element) => delete queryObj[element]);
   
     let queryStr = JSON.stringify(queryObj);
-    console.log(queryStr);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
   
     let query = Product.find(JSON.parse(queryStr));
@@ -70,7 +69,6 @@ const getAllProduct = asyncHandler(async (req, res) => {
     query = query.skip(skip).limit(limit);
     const productCount = await Product.countDocuments();
     if (skip >= productCount) throw new Error("This page does not exist");
-    console.log(page, limit, skip);
   
     try {
       const allProduct = await query;
@@ -137,7 +135,6 @@ if(allreadyAdd){
 const addRating = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
   const { star, prodId , comment} = req.body;
-  console.log(Comment)
   try {
     const product = await Product.findById(prodId);
 let allreadyRated = product.ratings.find(rating => rating.postedBy.toString() === id.toString());
@@ -184,7 +181,6 @@ const uploadImgs = asyncHandler(async(req, res) => {
     const uploader = (path) => uploadFileToCloudinary(path, "images");
     const urls = [];
     const files = req.files;
-    console.log(files)
     for(const file of files){
       const {path} = file;
       const newPath = await uploader(path);
