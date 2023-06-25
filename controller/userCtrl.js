@@ -1,11 +1,17 @@
-import User from "../models/userModel.js";
 import asyncHandler from "express-async-handler";
+import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
+import Cart from "../models/cartModel.js";
+import Coupon from "../models/couponModel.js";
+
 import generateToken from "../config/jwToken.js";
 import validateMongoId from "../ulits/validateMongodbId.js";
 import generateRefreshToken from "../config/refreshToken.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import sendEmail from "./emailCtrl.js";
+import Order from "../models/orderModel.js";
+import uniqid from "uniqid"
 
 const createUser = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -193,10 +199,10 @@ const updateUser = asyncHandler(async (req, res) => {
     const upUser = await User.findByIdAndUpdate(
       id,
       {
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        email: req.body.email,
-        mobile: req.body.mobile,
+        firstname: req?.body?.firstname,
+        lastname: req?.body?.lastname,
+        email: req?.body?.email,
+        mobile: req?.body?.mobile,
       },
       { new: true }
     );
@@ -332,6 +338,215 @@ throw new Error(error)
   }
 })
 
+// save your Address 
+
+const saveAddress = asyncHandler(async (req, res) =>{
+  const {id} = req.user;
+  validateMongoId(id);
+  try {
+    const address = await User.findByIdAndUpdate(
+      id,
+      {
+        address: req?.body?.address,
+      },
+      { new: true }
+    );
+
+    res.json(address);
+  } catch (error) {
+    throw new Error(error);
+  }
+
+}
+)
+
+
+const userCart = asyncHandler(async (req, res) => {
+  const { cart } = req.body;
+  const { id } = req.user;
+  validateMongoId(id);
+  try {
+    const products = [];
+    const user = await User.findById(id);
+
+    // User ke liye mojood cart ko hata diya jaaye
+    await Cart.deleteMany({ orderBy: user.id });
+
+    for (let i = 0; i < cart.length; i++) {
+      let object = {};
+      object.product = cart[i].id;
+      object.count = cart[i].count;
+      let getPrice = await Product.findById(cart[i].id).select("price").exec();
+      object.price = getPrice.price;
+      products.push(object);
+    }
+
+    let cartTotal = 0;
+    for (let i = 0; i < products.length; i++) {
+      cartTotal += products[i].price * products[i].count;
+    }
+
+
+    let newCart = await new Cart({
+      products,
+      cartTotal,
+      orderBy: user.id,
+    }).save();
+
+    res.json(newCart);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+
+const getCart = asyncHandler(async (req, res) => {
+  const {_id} = req.user;
+  validateMongoId(_id);
+  try{
+    const cart = await Cart.findOne({orderBy: _id}).populate("products.product")
+res.json(cart);
+
+  }catch(error){
+    throw new Error(error);
+  }
+
+})
+
+
+const emptyCart = asyncHandler(async (req, res) => {
+  const {_id} = req.user;
+  validateMongoId(_id);
+  try{
+    const user = await User.findOne({_id})
+    console.log(user)
+    const cart = await Cart.findOneAndRemove({orderBy : user?._id})
+res.json(cart);
+
+  }catch(error){
+    throw new Error(error);
+  }
+
+})
+
+
+
+const applyCoupon = asyncHandler(async (req, res) => {
+  const { coupon } = req.body;
+  const { _id } = req.user;
+  validateMongoId(_id);
+  try {
+    const validCoupon = await Coupon.findOne({ name: coupon });
+    if (!validCoupon) {
+      throw new Error("Invalid Coupon");
+    }
+    const user = await User.findOne({ _id });
+    const cart = await Cart.findOne({
+      orderBy: user?._id
+    }).populate("products.product");
+
+    const { products, cartTotal } = cart;
+    const totalAfterDiscount = (cartTotal - (cartTotal * validCoupon.discount) / 100).toFixed(2);
+
+    await Cart.findOneAndUpdate(
+      { orderBy: user?._id },
+      { totalAfterDiscount },
+      { new: true }
+    );
+
+    res.json(totalAfterDiscount);
+  } catch (error) {
+  throw new Error(error);
+  }
+});
+
+
+const createOrder = asyncHandler(async (req, res) => {
+  const { COD, couponApplied } = req.body;
+  const { _id } = req.user;
+  // validateMongoId(_id); // Assuming this function is defined correctly
+
+  try {
+    if (!COD) throw new Error("Create cash order failed");
+
+    const user = await User.findById(_id);
+    let userCart = await Cart.findOne({ orderBy: user._id });
+    let finalAmount = 0;
+
+    if (couponApplied && userCart.totalAfterDiscount) {
+      finalAmount = userCart.totalAfterDiscount;
+    } else {
+      finalAmount = userCart.cartTotal;
+    }
+
+    let newOrder = await new Order({
+      products: userCart.products,
+      paymentIntent: {
+        id: uniqid(),
+        method: "COD",
+        amount: finalAmount,
+        status: "Cash on Delivery",
+        created: Date.now(),
+        currency: "usd",
+      },
+      orderBy: user._id,
+      orderStatus: "Cash on Delivery",
+    }).save();
+
+    let update = userCart.products.map((item) => {
+      return {
+        updateOne: {
+          filter: { _id: item.product._id },
+          update: { $inc: { quantity: item.count, sold: +item.count } },
+        },
+      };
+    });
+
+    const updated = await Product.bulkWrite(update, {});
+
+    res.json({ message: "Order successfully updated" });
+  } catch (error) {
+   throw new Error(error)
+  }
+});
+
+
+const getOrder = asyncHandler(async(req, res) => {
+  const {_id} = req.user;
+  validateMongoId(_id);
+  try{
+const userOrder = await Order.findOne({orderBy : _id}).populate("products.product").exec()
+res.json(userOrder)
+  }catch(error){
+    throw new Error(error);
+  }
+})
+
+
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  validateMongoId(id);
+
+  try {
+    const updateOrder = await Order.findByIdAndUpdate(
+      id,
+      {
+        orderStatus: status,
+        paymentIntent: {
+          status: status
+        }
+      },
+      { new: true }
+    );
+
+    res.json(updateOrder);
+  } catch (error) {
+   throw  new Error(error)
+  }
+});
+
 
 export {
   createUser,
@@ -348,5 +563,14 @@ export {
   forgetPasswordToken,
   resetPassword,
   loginAdmin,
-  getWishList
+  getWishList,
+  saveAddress,
+  userCart,
+  getCart,
+  emptyCart,
+  applyCoupon,
+  createOrder,
+  getOrder,
+  updateOrderStatus
+  
 };

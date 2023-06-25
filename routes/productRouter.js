@@ -11,6 +11,7 @@ import {
     addToWishList,
     addRating,
     uploadImgs,
+    deleteImgs
 } from '../controller/productCtrl.js'
 import { uploadPhoto, productImgResize } from '../middlewares/uploadImgs.js';
 
@@ -21,9 +22,10 @@ router.get('/', getAllProduct)
 router.get('/:id', getSingleProduct)
 router.put('/wishlist',authMiddleware,isAdmin, addToWishList)
 router.put('/rating',authMiddleware, addRating)
+router.put('/upload-imgs',authMiddleware,isAdmin, uploadPhoto.array('images',10),productImgResize, uploadImgs)
 router.put('/:id',authMiddleware,isAdmin, updateProduct)
-router.put('/upload-imgs/:id',authMiddleware,isAdmin, uploadPhoto.array('images',10),productImgResize, uploadImgs)
 router.delete('/:id',authMiddleware,isAdmin, deleteProduct)
+router.delete('/delete-imgs/:id',authMiddleware,isAdmin, deleteImgs)
 
 
 

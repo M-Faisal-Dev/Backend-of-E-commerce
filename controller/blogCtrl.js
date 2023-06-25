@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import Blog from "../models/blogModel.js";
 import asyncHandler from "express-async-handler";
 import validateMongoId from "../ulits/validateMongodbId.js";
-import uploadFileToCloudinary from "../ulits/cloudinary.js";
+import {uploadFileToCloudinary} from "../ulits/cloudinary.js";
 import fs from "fs";
 
 
